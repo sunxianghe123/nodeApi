@@ -3,6 +3,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 // var logger = require('morgan');
+var bodyParser = require('body-parser');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -22,7 +23,12 @@ var server = http.createServer(app);
 // app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+// 静态资源
 app.use(express.static(path.join(__dirname, 'public')));
+
+// post请求
+app.use(bodyParser.urlencoded({extended: true}));
 
 // 使用引入的路由
 app.use('/', indexRouter);
