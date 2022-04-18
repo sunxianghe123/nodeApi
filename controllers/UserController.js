@@ -46,7 +46,7 @@ sendCode = (req, res, next) => {
 }
 
 // 验证码登录接口
-codePhoneLogin = (req, res) => {
+let codePhoneLogin = (req, res) => {
   let {phone, code} = req.query;
   // 验证该手机号是否发送过验证码
   if (sendCodeP(phone)) {
@@ -72,7 +72,62 @@ codePhoneLogin = (req, res) => {
     })
   }
 }
+
+// 获取用户信息接口
+let getUserInfo = (req, res, next) =>{
+  let {username, password} = req.query;
+  let sql = 'select * from user_info where username=?';
+  let sqlArr = [username];
+  let callback = (err, data) => {
+    if (err) {
+      res.send({
+        'err': err,
+        'msg': '注册失败',
+        'code': 400,
+      })
+    } else {
+      res.send({
+        'list': data,
+        'msg': '成功',
+        'code': 200,
+      })
+    }
+  }
+  dbConfig.sqlConnect(sql, sqlArr, callback);
+}
+
+// 用户注册接口
+let postRegister = async (req, res) =>{
+  console.log(req.body);
+  let {username, avatar, phone} = req.body;
+  // 检测用户是否存在
+  // let avatar = 'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fc-ssl.duitang.com%2Fuploads%2Fblog%2F202103%2F18%2F20210318191428_03a54.jpg&refer=http%3A%2F%2Fc-ssl.duitang.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=auto?sec=1652859044&t=35c7a7402684b3fa0db4d33040c13f67';
+  let create_time = new Date().valueOf();
+  let sql = `insert into user(username, avatar, phone, create_time) value(?,?,?,?)`;
+  let sqlArr = [username, avatar, phone, create_time];
+  let callback = (err, data) => {
+    if (err) {
+      console.log(err);
+      res.send({
+        'err': err,
+        'msg': '注册失败',
+        'code': 400,
+      })
+    } else {
+      res.send({
+        'list': data,
+        'msg': '注册成功',
+        'code': 200,
+      })
+    }
+  }
+  dbConfig.sqlConnect(sql, sqlArr, callback);
+}
+
+
 module.exports = {
   sendCode,
-  codePhoneLogin
+  codePhoneLogin,
+  getUserInfo,
+  postRegister
 }
