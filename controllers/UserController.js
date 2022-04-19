@@ -1,80 +1,6 @@
 const dbConfig = require("../util/dbconfig");
 const moment = require('moment')
 
-
-function rand(min, max) {
-  return Math.floor(Math.random() * (max - min)) + min;
-}
-
-let validatePhoneCode = [];
-let sendCodeP = (phone) => {
-  for (let item of validatePhoneCode) {
-    if (phone === item.phone) {
-      return true;
-    }
-  }
-  return false;
-}
-let findCodeAndPhone = (phone, code) => {
-  for (let item of validatePhoneCode) {
-    if ((phone == item.phone) && (code == item.code)) {
-      return 'login';
-    }
-  }
-  return 'error';
-}
-
-//模拟发送验证码接口
-// 这些 req,res函数是放到路由中用的，路由是express的路由，封装了req和res以及next
-sendCode = (req, res, next) => {
-  let phone = req.query.phone;
-  if (sendCodeP(phone)) {
-    res.send({
-      'code': 400,
-      'msg': '已经发送过验证码，稍后再发',
-    })
-  }
-  let code = rand(1000, 9999);
-  validatePhoneCode.push({
-    'phone': phone,
-    'code': code
-  })
-  console.log(validatePhoneCode);
-  res.send({
-    'code': 200,
-    'msg': '发送成功',
-  })
-  console.log(code);
-}
-
-// 验证码登录接口
-let codePhoneLogin = (req, res) => {
-  let {phone, code} = req.query;
-  // 验证该手机号是否发送过验证码
-  if (sendCodeP(phone)) {
-    // 验证码和手机号是否匹配
-    let status = findCodeAndPhone(phone, code);
-    if (status === 'login') {
-      // 登录成功
-      // 成功之后的操作
-      res.send({
-        'code': 200,
-        'msg': '登录成功'
-      })
-    } else if (status === 'error') {
-      res.send({
-        'code': 200,
-        'msg': '登录失败'
-      })
-    }
-  } else {
-    res.send({
-      'code': 400,
-      'msg': '未发送验证码'
-    })
-  }
-}
-
 /*// 获取用户信息接口
 let getUserInfo = (req, res, next) => {
   let {username, password} = req.query;
@@ -107,8 +33,8 @@ let getUser = (username, callback) => {
   return dbConfig.SySqlConnect(sql, sqlArr, callback);
 }
 // 获取用户表中数据条数（已完成）
-let getUserCount = () => {
-  let sql = `select count(*) from user`;
+let getUserCount = (table_name) => {
+  let sql = `select count(*) from ${table_name}`;
   let sqlArr = [];
   return dbConfig.SySqlConnect(sql, sqlArr);
 }
@@ -121,7 +47,7 @@ let postRegister = async (req, res) => {
   // let avatar = 'https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fc-ssl.duitang.com%2Fuploads%2Fblog%2F202103%2F18%2F20210318191428_03a54.jpg&refer=http%3A%2F%2Fc-ssl.duitang.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=auto?sec=1652859044&t=35c7a7402684b3fa0db4d33040c13f67';
   let create_time = moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
   let user = await getUser(username);
-  let count = (await getUserCount())[0]['count(*)'];
+  let count = (await getUserCount('user'))[0]['count(*)'];
   let id = count + 1;
   // console.log(user, 'user');
   // console.log(count, 'count');
@@ -158,62 +84,77 @@ let postRegister = async (req, res) => {
 // TODO
 //获取注册用户的详情
 let getUserInfo = (user_id) => {
-  let sql = `select age,sex,job,path,birthday from userinfo where user_id=?`;
+  let sql = `select age,sex,job,path,birthday from user_info where user_id=?`;
   let sqlArr = [user_id];
   return dbConfig.SySqlConnect(sql, sqlArr);
 }
-//创建副表
-let createUserInfo = (user_id) => {
-  let sql = `insert into userinfo(user_id,age,sex,job) values(?,?,?,?)`;
-  let sqlArr = [user_id, 18, 2, '未设置'];
-  return dbConfig.SySqlConnect(sql, sqlArr);
+//插入用户详细信息
+let insertUserInfo = (req, res) => {
+  let {user_id, username, age, sex, job, path, birthday} = req.body;
+  let sql = `insert into user_info(user_id, username, age, sex, job, path, birthday) values(?,?,?,?,?,?,?)`;
+  let sqlArr = [user_id, username, age, sex, job, path, birthday];
+  let callback = (err, data) => {
+    if (err) {
+      console.log(err);
+      res.send({
+        'err': err,
+        'msg': '注册失败',
+        'code': 400,
+      })
+    } else {
+      res.send({
+        'list': data,
+        'msg': '注册成功',
+        'code': 200,
+      })
+    }
+  }
+  dbConfig.sqlConnect(sql, sqlArr, callback);
 }
 
 //查看用户是否有详情信息
-let finUserInfo = async (user_id) => {
-  let sql = `select * from userinfo where user_id=?`;
+let findUserInfo = async (user_id) => {
+  let sql = `select * from user_info where user_id=?`;
   let sqlArr = [user_id];
   let res = await dbConfig.SySqlConnect(sql, sqlArr);
-  if (res.length) {
-    return true;
-  }
-  return false;
+  return !!res.length;
 }
+
 //修改用户详细信息
-let setUserInfo = async (user_id, age, sex, job, path, birthday) => {
-  if (finUserInfo(user_id)) {
-    let sql = `update userinfo  set age=?,sex=?,job=?,path=?,birthday=? where user_id=? `;
-    let sqlArr = [age, sex, job, path, birthday, user_id]
+let setUserInfo = async (user_id, username, age, sex, job, path, birthday) => {
+  console.log(user_id, username, age, sex, job, path, birthday);
+  let hasUserInfo = await findUserInfo(user_id);
+  let sqlArr = [username, age, sex, job, path, birthday, user_id];
+  console.log(sqlArr, 'sqlArr');
+  if (hasUserInfo) {
+    let sql = `update user_info set username=?, age=?,sex=?,job=?,path=?,birthday=? where user_id=? `;
     let res = await dbConfig.SySqlConnect(sql, sqlArr);
     if (res.affectedRows == 1) {
       let user = await getUser(user_id);
-      let userinfo = await getUserInfo(user_id);
-      user[0].userinfo = userinfo[0];
+      let user_info = await getUserInfo(user_id);
+      user[0].user_info = user_info[0];
       return user;
     }
   } else {
-    let sql = `insert into userinfo (user_id,age,sex,job,path,birthday) values(?,?,?,?,?,?)`;
-    let sqlArr = [user_id, age, sex, job, path, birthday];
+    let sql = `insert into user_info (user_id,username,age,sex,job,path,birthday) values(?,?,?,?,?,?,?)`;
+    // let sqlArr = [user_id, age, sex, job, path, birthday];
     let res = await dbConfig.SySqlConnect(sql, sqlArr);
     if (res.affectedRows == 1) {
       let user = await getUser(user_id);
-      let userinfo = await getUserInfo(user_id);
-      user[0].userinfo = userinfo[0];
+      let user_info = await getUserInfo(user_id);
+      user[0].user_info = user_info[0];
       return user;
     }
   }
 }
 
 //修改用户名称
+// mysql_affected_rows() 函数返回前一次 MySQL 操作所影响的记录行数。
 let setUserName = async (user_id, username) => {
   let sql = `update user set username=? where id=?`;
   let sqlArr = [username, user_id];
   let res = await dbConfig.SySqlConnect(sql, sqlArr);
-  if (res.affectedRows == 1) {
-    return true;
-  } else {
-    return false;
-  }
+  return res.affectedRows == 1;
 }
 
 //用户名、手机号登录,手机号+密码，邮箱+密码，用户名+密码
@@ -226,6 +167,7 @@ let login = (req, res) => {
     let sql = 'select * from user where phone=? and password=? or username=? and password=?';
     let sqlArr = [username, password, username, password];
     let callBack = async (err, data) => {
+      console.log(data);
       if (err) {
         console.log(err);
         res.send({
@@ -240,7 +182,7 @@ let login = (req, res) => {
       } else {
         let user_id = data[0].id;
         let result = await getUserInfo(user_id);
-        data[0].userinfo = result[0];
+        data[0].user_info = result[0];
         res.send({
           code: 200,
           msg: '登录成功',
@@ -267,7 +209,7 @@ let login = (req, res) => {
       } else {
         let user_id = data[0].id;
         let result = await getUserInfo(user_id);
-        data[0].userinfo = result[0];
+        data[0].user_info = result[0];
         res.send({
           code: 200,
           msg: '登录成功',
@@ -294,7 +236,7 @@ let login = (req, res) => {
       } else {
         let user_id = data[0].id;
         let result = await getUserInfo(user_id);
-        data[0].userinfo = result[0];
+        data[0].user_info = result[0];
         res.send({
           code: 200,
           msg: '登录成功',
@@ -304,14 +246,16 @@ let login = (req, res) => {
     }
     dbConfig.sqlConnect(sql, sqlArr, callBack);
   }
-
 }
+
 //修改资料
 let editUserInfo = async (req, res) => {
-  let {user_id, username, age, sex, job, path, birthday} = req.query;
+  let {user_id, username, age, sex, job, path, birthday} = req.body;
   let result = await setUserName(user_id, username);
+  console.log(result);
   if (result) {
-    let data = await setUserInfo(user_id, age, sex, job, path, birthday);
+    let data = await setUserInfo(user_id, username, age, sex, job, path, birthday);
+    console.log(data);
     if (data.length) {
       res.send({
         code: 200,
@@ -335,7 +279,6 @@ let checkUserPwd = async (user_id) => {
   let sql = `select password from user where id=?`;
   let sqlArr = [user_id];
   let res = await dbConfig.SySqlConnect(sql, sqlArr);
-  console.log(res[0].password)
   if (res.length) {
     return res[0].password;
   } else {
@@ -344,10 +287,9 @@ let checkUserPwd = async (user_id) => {
 }
 //修改用户密码
 let setPassword = async (req, res) => {
-  let {user_id, oldpassword, newpassword} = req.query;
+  let {user_id, oldpassword, newpassword} = req.body;
   let userPwd = await checkUserPwd(user_id);
   if (userPwd) {
-    console.log(userPwd, oldpassword)
     if (userPwd == oldpassword) {
       let sql = `update user set password=? where id=?`;
       let sqlArr = [newpassword, user_id];
@@ -416,8 +358,11 @@ let logout = (req, res) => {
 
 
 module.exports = {
-  sendCode,
-  codePhoneLogin,
   getUserInfo,
-  postRegister
+  postRegister,
+  login,
+  editUserInfo,
+  insertUserInfo,
+  setPassword,
+  logout
 }
