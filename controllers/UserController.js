@@ -82,6 +82,35 @@ let postRegister = async (req, res) => {
 
 
 // TODO
+// 获取当前用户信息
+let getCurrentUserInfo = (req, res) => {
+  let {username} = req.query;
+  let sql = `select age,sex,job,path,birthday from user_info where username=?`;
+  let sqlArr = [username];
+  let callback = (err, data) => {
+    console.log(data);
+    if (err) {
+      console.log(err);
+      res.send({
+        'err': err,
+        'msg': '出错了',
+        'code': 400,
+      })
+    } else if(data == '') {
+      res.send({
+        'msg': '用户不存在',
+        'code': 400,
+      })
+    } else {
+      res.send({
+        'list': data,
+        'msg': 'ok',
+        'code': 200,
+      })
+    }
+  }
+  dbConfig.sqlConnect(sql, sqlArr, callback);
+}
 //获取注册用户的详情
 let getUserInfo = (user_id) => {
   let sql = `select age,sex,job,path,birthday from user_info where user_id=?`;
@@ -159,8 +188,8 @@ let setUserName = async (user_id, username) => {
 
 //用户名、手机号登录,手机号+密码，邮箱+密码，用户名+密码
 let login = (req, res) => {
-  let username = req.query.username,
-      password = req.query.password;
+  let username = req.body.username,
+      password = req.body.password;
   let phone = /^1\d{10}$/;
   let email = /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+((\.[a-zA-Z0-9_-]{2,3}){1,2})$/;
   if (phone.test(username)) {
@@ -358,7 +387,7 @@ let logout = (req, res) => {
 
 
 module.exports = {
-  getUserInfo,
+  getCurrentUserInfo,
   postRegister,
   login,
   editUserInfo,
