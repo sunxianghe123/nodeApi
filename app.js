@@ -1,20 +1,21 @@
-// var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-// var logger = require('morgan');
-var bodyParser = require('body-parser');
+// const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+// const logger = require('morgan');
+const bodyParser = require('body-parser');
 // cors包用于实现跨域
 const cors = require('cors');
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+const indexRouter = require('./routes/index');
+const usersRouter = require('./routes/users');
+const goodsRouter = require('./routes/goods');
 
-var app = express();
+const app = express();
 
 // 改写
-var http = require('http');
-var server = http.createServer(app);
+const http = require('http');
+const server = http.createServer(app);
 
 // view engine setup 模板相关
 // app.set('views', path.join(__dirname, 'views'));
@@ -47,6 +48,7 @@ app.use(bodyParser.json());   // 将数据转换成json格式
 // 使用引入的路由
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/goods', goodsRouter);
 
 // catch 404 and forward to error handler
 // app.use(function(req, res, next) {
