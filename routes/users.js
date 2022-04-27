@@ -9,6 +9,6 @@ router.post('/login', User.login);
 router.post('/editUserInfo', User.editUserInfo);
 router.post('/insertUserInfo', User.insertUserInfo);
 router.post('/setPassword', User.setPassword);
-router.get('/logout', User.logout);
+router.post('/logout', User.logout);
 
 module.exports = router;

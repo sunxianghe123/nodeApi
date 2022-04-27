@@ -85,7 +85,7 @@ let postRegister = async (req, res) => {
 // 获取当前用户信息
 let getCurrentUserInfo = (req, res) => {
   let {username} = req.query;
-  let sql = `select age,sex,job,path,birthday from user_info where username=?`;
+  let sql = `select username,avatar,age,sex,job,path,birthday from user_info where username=?`;
   let sqlArr = [username];
   let callback = (err, data) => {
     console.log(data);
@@ -378,10 +378,9 @@ let bindEmail = async (req, res) => {
 }
 //退出
 let logout = (req, res) => {
-
   res.send({
-    code: 200,
-    msg: '退出登录'
+    data: {},
+    success: true,
   })
 }
 
