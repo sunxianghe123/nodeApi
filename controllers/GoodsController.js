@@ -1,13 +1,4 @@
 const dbConfig = require("../util/dbconfig");
-const moment = require('moment')
-
-// 获取用户主表（已完成）
-let getUser = (username, callback) => {
-  callback = callback || null;
-  let sql = `select * from user where id=? or phone=? or username=?`;
-  let sqlArr = [username, username, username];
-  return dbConfig.SySqlConnect(sql, sqlArr, callback);
-}
 
 let getCount = (table_name) => {
   let sql = `select count(*) from ${table_name}`;

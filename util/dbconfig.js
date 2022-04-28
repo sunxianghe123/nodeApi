@@ -31,7 +31,6 @@ module.exports = {
     return new Promise((resolve,reject)=>{
       var pool = mysql.createPool(this.config);
       pool.getConnection(function(err,conn){
-        console.log('123');
         if(err){
           reject(err);
         }else{
