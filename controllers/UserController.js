@@ -102,15 +102,15 @@ let getUser = (username, callback) => {
  * @returns {Promise<void>}
  */
 let postRegister = async (req, res) => {
-  let {username, avatar, password, phone, email} = req.body;
+  let {username, password, avatar, age, sex, job, path, birthday, email, phone} = req.body;
   // 检测用户是否存在
   let created_at = moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
   let user = await getUser(username);
   let count = (await getCount('user_info'))[0]['count(*)'];
   let user_id = count + 1;
   if (!user[0]) {
-    let sql = `insert into user_info(user_id, username, avatar, password, phone, email, created_at) value(?,?,?,?,?,?,?)`;
-    let sqlArr = [user_id, username, avatar, password, phone, email, created_at];
+    let sql = `insert into user_info(user_id, username, password, avatar, age, sex, job, path, birthday, email, phone, created_at) value(?,?,?,?,?,?,?,?,?,?,?,?)`;
+    let sqlArr = [user_id, username, password, avatar, age, sex, job, path, birthday, email, phone, created_at];
     let callback = (err, data) => {
       if (err) {
         console.log(err);
