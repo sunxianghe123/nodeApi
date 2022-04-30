@@ -10,6 +10,7 @@ const cors = require('cors');
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const goodsRouter = require('./routes/goods');
+const slidesRouter = require('./routes/slides');
 
 const app = express();
 
@@ -53,6 +54,7 @@ app.use(bodyParser.json());   // 将数据转换成json格式
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/goods', goodsRouter);
+app.use('/slides', slidesRouter);
 
 // catch 404 and forward to error handler
 // app.use(function(req, res, next) {
