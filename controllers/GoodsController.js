@@ -10,7 +10,7 @@ let getCount = (table_name) => {
 // 获取表中数据条数（已完成）
 let getCountArr = async (req, res) => {
   try {
-    let usersCount = (await getCount('user'))[0]['count(*)'];
+    let usersCount = (await getCount('user_info'))[0]['count(*)'];
     let goodsCount = (await getCount('goods'))[0]['count(*)'];
     let ordersCount = (await getCount('orders'))[0]['count(*)'];
     res.send({
@@ -122,7 +122,6 @@ let addGoods = async (req, res) => {
  * 修改用户详细信息
  */
 let setGoodInfo = async (id, user_id, category_id, title, description, price, stock, cover, pics, details, sales, created_at) => {
-  console.log(id, user_id, category_id, title, description, price, stock, cover, pics, details, sales, created_at)
   let sqlArr = [user_id, category_id, title, description, price, stock, cover, pics, details, sales, created_at, id];
   let sql = `update goods set user_id=?,category_id=?,title=?,description=?,price=?,stock=?,cover=?,pics=?,details=?,sales=?,created_at=? where id=? `;
   let res = await dbConfig.SySqlConnect(sql, sqlArr);
@@ -139,7 +138,7 @@ let setGoodInfo = async (id, user_id, category_id, title, description, price, st
  */
 let editGoodInfo = async (req, res) => {
   let {id, user_id, category_id, title, description, price, stock, cover, pics, details, sales, created_at} = req.body;
-  created_at = created_at || moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
+  created_at = created_at ? moment(created_at).format('YYYY-MM-DD HH:mm:ss') : moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
   price = Number(price);
   stock = Number(stock);
   let data = await setGoodInfo(id, user_id, category_id, title, description, price, stock, cover, pics, details, sales, created_at);

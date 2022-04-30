@@ -27,6 +27,10 @@ const server = http.createServer(app);
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
+// 配置payload大小
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }))
+app.use(bodyParser.json({limit: '50mb'}))
+
 // 静态资源
 app.use(express.static(path.join(__dirname, 'public')));
 
