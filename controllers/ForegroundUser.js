@@ -7,28 +7,28 @@ const dbConfig = require("../util/dbconfig");
  * @returns {Promise<void>}
  */
 let editUserInfo = async (req, res) => {
-  let {id, path, birthday, age, job, phone} = req.query;
+  let {user_id, path, birthday, age, job, phone} = req.query;
   let sql = '';
   let sqlArr = [];
   if(path) {
     sql = `update user_info set path=? where user_id=? `;
-    sqlArr = [path, id];
+    sqlArr = [path, user_id];
   }
   if(birthday) {
     sql = `update user_info set birthday=? where user_id=? `;
-    sqlArr = [birthday, id];
+    sqlArr = [birthday, user_id];
   }
   if(age) {
     sql = `update user_info set age=? where user_id=? `;
-    sqlArr = [age, id];
+    sqlArr = [age, user_id];
   }
   if(job) {
     sql = `update user_info set job=? where user_id=? `;
-    sqlArr = [job, id];
+    sqlArr = [job, user_id];
   }
   if(phone) {
     sql = `update user_info set phone=? where user_id=? `;
-    sqlArr = [phone, id];
+    sqlArr = [phone, user_id];
   }
   let callback = (err, data) => {
     if (err) {
