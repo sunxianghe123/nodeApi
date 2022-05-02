@@ -4,7 +4,8 @@ var Cart = require('../controllers/CartController');
 
 /* GET users listing. */
 router.get('/getCartList', Cart.getCartList);
-router.get('/addToCart', Cart.addToCart);
+router.post('/addToCart', Cart.addToCart);
+router.get('/changeGoodChecked', Cart.changeGoodChecked);
 
 
 module.exports = router;

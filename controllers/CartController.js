@@ -24,9 +24,9 @@ let getCartList = (req, res, next) => {
   let {id, user_id, goods_id, num, is_checked, created_at, updated_at} = req.query;
   let sql = `select * from cart`;
   let sqlArr = [];
-  if (num) {
-    sql = `select * from cart where num=?`;
-    sqlArr = [num];
+  if (user_id) {
+    sql = `select * from cart where user_id=?`;
+    sqlArr = [user_id];
   }
   let callback = (err, data) => {
     if (err) {
@@ -67,7 +67,7 @@ let searchCart = (goods_id, callback) => {
  * @returns {Promise<void>}
  */
 let addToCart = async (req, res) => {
-  let {user_id, goods_id, num, is_checked, updated_at} = req.query;
+  let {user_id, goods_id, num, image, title, description, price, is_checked, updated_at} = req.body;
   let sql = "", sqlArr = [];
   // 检测用户是否存在
   let created_at = moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
@@ -77,16 +77,18 @@ let addToCart = async (req, res) => {
   if(!user_id) {
     user_id = 1;
   }
+  user_id = Number(user_id);
   console.log(hasNum, 'hasNum');
   if (hasNum) {
     num = goodNum + 1;
-    sql = `update cart set num=? where goods_id=?`;
-    sqlArr = [num, goods_id];
+    sql = `update cart set num=?, image=?, title=?, description=?, price=? where goods_id=?`;
+    sqlArr = [num, image, title, description, price, goods_id];
   } else {
     let id = count + 1;
     num = 1;
-    sql = `insert into cart(id, user_id, goods_id, num, is_checked, created_at, updated_at) value (?,?,?,?,?,?,?)`;
-    sqlArr = [id, user_id, goods_id, num, is_checked, created_at, updated_at];
+    console.log(user_id, 'user_id')
+    sql = `insert into cart(id, user_id, goods_id, num, image, title, description, price, is_checked, created_at, updated_at) value (?,?,?,?,?,?,?,?,?,?,?)`;
+    sqlArr = [id, user_id, goods_id, num, image, title, description, price, is_checked, created_at, updated_at];
   }
   let callback = (err, data) => {
     if (err) {
@@ -107,7 +109,23 @@ let addToCart = async (req, res) => {
   dbConfig.sqlConnect(sql, sqlArr, callback);
 }
 
-
+const changeGoodChecked = async (req, res) => {
+  let {id, is_checked} = req.query;
+  let sql = `update cart set is_checked=? where id=?`;
+  let sqlArr = [is_checked, id];
+  let result = await dbConfig.SySqlConnect(sql, sqlArr);
+  if (result?.affectedRows) {
+    res.send({
+      code: 200,
+      msg: '操作成功！'
+    })
+  } else {
+    res.send({
+      code: 400,
+      msg: '操作失败！'
+    })
+  }
+}
 
 
 
@@ -116,4 +134,5 @@ let addToCart = async (req, res) => {
 module.exports = {
   getCartList,
   addToCart,
+  changeGoodChecked
 }
