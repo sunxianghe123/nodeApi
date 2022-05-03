@@ -127,12 +127,30 @@ const changeGoodChecked = async (req, res) => {
   }
 }
 
-
+const deleteGoodInCart = async (req, res) => {
+  let {user_id, goods_id} = req.query;
+  let sql = `delete from cart where user_id=? and goods_id=?`;
+  let sqlArr = [user_id, goods_id];
+  let result = await dbConfig.SySqlConnect(sql, sqlArr);
+  console.log(result);
+  if (result?.affectedRows) {
+    res.send({
+      code: 200,
+      msg: '操作成功！'
+    })
+  } else {
+    res.send({
+      code: 400,
+      msg: '操作失败！'
+    })
+  }
+}
 
 
 
 module.exports = {
   getCartList,
   addToCart,
-  changeGoodChecked
+  changeGoodChecked,
+  deleteGoodInCart
 }

@@ -6,6 +6,7 @@ var Cart = require('../controllers/CartController');
 router.get('/getCartList', Cart.getCartList);
 router.post('/addToCart', Cart.addToCart);
 router.get('/changeGoodChecked', Cart.changeGoodChecked);
+router.get('/deleteGoodInCart', Cart.deleteGoodInCart);
 
 
 module.exports = router;
